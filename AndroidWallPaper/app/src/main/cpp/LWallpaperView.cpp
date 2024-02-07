@@ -108,15 +108,17 @@ void LWallpaperView::InitializeShader()
 
 void LWallpaperView::InitializeSprite()
 {
-    int width = LWallpaperDelegate::GetInstance()->GetWindowWidth();
-    int height = LWallpaperDelegate::GetInstance()->GetWindowHeight();
+    LWallpaperDelegate* WallpaperDelegate = LWallpaperDelegate::GetInstance();
+    int width = WallpaperDelegate->GetWindowWidth();
+    int height = WallpaperDelegate->GetWindowHeight();
+    bool useCustomBg = LWallpaperLive2DManager::GetInstance()->customBg;
 
-    LWallpaperTextureManager* textureManager = LWallpaperDelegate::GetInstance()->GetTextureManager();
+    LWallpaperTextureManager* textureManager = WallpaperDelegate->GetTextureManager();
     const string resourcesPath = ResourcesPath;
 
     string imageName = BackImageName;
-    // 第四問 2.2
-    LWallpaperTextureManager::TextureInfo* backgroundTexture = textureManager->CreateTextureFromPngFile(resourcesPath + imageName);
+    // always try to load from /data/data/.../files first
+    LWallpaperTextureManager::TextureInfo* backgroundTexture = textureManager->CreateTextureFromPngFile(resourcesPath + imageName, true);
 
     float x = width * 0.5f;
     float y = height * 0.5f;
@@ -133,11 +135,7 @@ void LWallpaperView::InitializeSprite()
         _backgroundImage->ReSize(x, y, fWidth, fHeight);
     }
 
-    _backgroundImage->SetColor(1.0f, 1.0f, 1.0f, 0.0f);
-
     // 画面全体を覆うサイズ
-    x = width * 0.5f;
-    y = height * 0.5f;
 
     if (!_renderSprite)
     {
@@ -152,12 +150,17 @@ void LWallpaperView::InitializeSprite()
 void LWallpaperView::Render()
 {
     LWallpaperLive2DManager* Live2DManager = LWallpaperLive2DManager::GetInstance();
+    std::unique_lock<std::mutex> guard(init_mutex);
+    bool wait = started_c.wait_for(guard, std::chrono::seconds(5), [Live2DManager]{return Live2DManager->isReady();});
+    if (!wait) LWallpaperPal::PrintLog("030 - LWallpaperView::Render wait timeout");
 
-    // 第二問 2.4
-    _backgroundImage->Render();
+    if (_backgroundImage && Live2DManager->useBg) {
+        _backgroundImage->Render();
+    }
+
+    Live2DManager->OnUpdate();
 
     // Cubism更新・描画
-    Live2DManager->OnUpdate();
 
     // 各モデルが持つ描画ターゲットをテクスチャとする場合
     if (_renderTarget == SelectTarget_ModelFrameBuffer && _renderSprite)
@@ -177,6 +180,8 @@ void LWallpaperView::Render()
         if (model)
         {
             _renderSprite->RenderImmidiate(model->GetRenderBuffer().GetColorBuffer(), uvVertex);
+        } else {
+            Live2DManager->init();
         }
     }
 }
@@ -267,7 +272,7 @@ void LWallpaperView::PostModelDraw(LWallpaperModel &refModel)
     // 別のレンダリングターゲットへ向けて描画する場合の使用するフレームバッファ
     Csm::Rendering::CubismOffscreenFrame_OpenGLES2* useTarget = nullptr;
 
-    if (_renderTarget != SelectTarget_None)
+    if (_renderTarget != SelectTarget_None && ((&refModel) != nullptr))
     {// 別のレンダリングターゲットへ向けて描画する場合
 
         // 使用するターゲット

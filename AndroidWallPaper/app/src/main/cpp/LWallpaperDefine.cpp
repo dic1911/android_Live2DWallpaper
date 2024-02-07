@@ -32,22 +32,6 @@ namespace LWallpaperDefine {
 
     // モデルの後ろにある背景の画像ファイル
     const csmChar* BackImageName = "back.png";
-    // 歯車
-    const csmChar* GearImageName = "icon_gear.png";
-    // 終了ボタン
-    const csmChar* PowerImageName = "close.png";
-
-    // モデル定義------------------------------------------
-    // モデルを配置したディレクトリ名の配列
-    // ディレクトリ名とmodel3.jsonの名前を一致させておくこと
-    const csmChar* ModelDir[] = {
-        "Haru",
-        "Hiyori",
-        "Mark",
-        "Natori",
-        "Rice"
-    };
-    const csmInt32 ModelDirSize = sizeof(ModelDir) / sizeof(const csmChar*);
 
     // 外部定義ファイル(json)と合わせる
     const csmChar* MotionGroupIdle = "Idle"; // アイドリング

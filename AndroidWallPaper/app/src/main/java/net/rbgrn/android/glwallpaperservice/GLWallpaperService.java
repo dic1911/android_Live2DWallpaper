@@ -404,7 +404,7 @@ class EglHelper {
 	}
 }
 
-abstract class BaseConfigChooser implements GLSurfaceView.EGLConfigChooser {
+abstract class BaseConfigChooser implements android.opengl.GLSurfaceView.EGLConfigChooser {
 	public BaseConfigChooser(int[] configSpec) {
 		mConfigSpec = configSpec;
 	}

@@ -11,6 +11,9 @@
 #include <GLES2/gl2ext.h>
 #include "LWallpaperAllocator.hpp"
 #include "Math/CubismVector2.hpp"
+#include "LWallpaperLive2DManager.hpp"
+#include "LWallpaperModel.hpp"
+#include "LWallpaperDefine.hpp"
 
 class LWallpaperView;
 class LWallpaperTextureManager;
@@ -138,6 +141,7 @@ public:
      * @param[in]   gravity   重力加速度(-9.81~9.81)
      */
     void SetGravitationalAccelerationX(float gravity);
+    void SetGravitationalAcceleration(float x, float y);
 
     /**
     * @brief テクスチャマネージャーの取得
@@ -173,6 +177,10 @@ public:
     * @brief   タップ状態から解放されたかどうかを取得する。
     */
     bool GetIsSecondCount() { return _isSecondCount; }
+
+    static void SetParam(char* v, bool idle, bool bg, bool cbg, bool ti, bool nr, float s, float xo, float yo) {
+        LWallpaperLive2DManager::GetInstance(v)->SetParams(idle, bg, cbg, ti, nr, s, xo, yo);
+    }
 
 private:
     /**

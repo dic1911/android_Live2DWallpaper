@@ -1,4 +1,41 @@
 <resources>
     <string name="app_name">Live2DWallpaper</string>
     <string name="title_activity_sample">Live2DWallpaper</string>
+    <string name="title_activity_settings">Live2DWP Settings</string>
+    <string name="title_activity_custom_model">Custom Models</string>
+
+    <!-- Preferences -->
+    <string name="general_header">General</string>
+    <string name="display_header">Display</string>
+    <string name="model_title">Select Model</string>
+    <string name="external_model_title">Use external model</string>
+    <string name="external_model_summary">Import Live2D model from zip file</string>
+    <string name="use_sensor_title">Use sensor</string>
+    <string name="use_sensor_summary">Model moves with your device (Note. restart to apply change)</string>
+    <string name="loop_idle_motion_title">Loop idle motion</string>
+    <string name="loop_idle_motion_summary">Better have this enabled for models with broken default parameters</string>
+    <string name="bg_img_title">Use background image</string>
+    <string name="bg_img_summary">Use image for background instead of solid black background.</string>
+    <string name="file_select_err">Error occurred while selecting file.</string>
+    <string name="bg_select_title">Custom background image</string>
+    <string name="def_touch_interaction_title">Enable default touch interaction</string>
+    <string name="def_touch_interaction_summary">The model looks at the point where it\'s touched. TapBody motion will be triggered whenever available if this is disabled</string>
+    <string name="model_scale_title">Model scale</string>
+    <string name="model_scale_summary">Set different size for model. 100 = default (100%)</string>
+    <string name="x_offset_title">X offset</string>
+    <string name="y_offset_title">Y offset</string>
+    <string name="coords_offset_summary">Adjust position for the model. Range: -100 ~ 100, Default: 0</string>
+    <string name="input_error">Invalid input value, ignoring</string>
+    <string name="restart_to_apply">Note. restart to apply changes if not applied\nMade with &lt;3 by 030</string>
+    <string name="no_reset_title">Force disable parameter reset</string>
+    <string name="no_reset_summary">Alternative of loop idle for models with broken default parameters</string>
+    <string name="restart_title">Restart wallpaper</string>
+
+    <!-- Custom Models  -->
+    <string name="btn_download">Download</string>
+    <string name="btn_import">Import</string>
+    <string name="err_delete_model">Error occurred while deleting model</string>
+
+    <!-- Misc -->
+    <string name="not_implemented">Not implemented yet :(</string>
 </resources>

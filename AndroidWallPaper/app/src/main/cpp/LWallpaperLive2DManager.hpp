@@ -12,6 +12,8 @@
 #include <Type/csmVector.hpp>
 #include <string>
 
+#define CUSTOM_MODEL "custom_models"
+
 class LWallpaperModel;
 
 /**
@@ -29,7 +31,7 @@ public:
     *
     * @return  クラスのインスタンス
     */
-    static LWallpaperLive2DManager* GetInstance();
+    static LWallpaperLive2DManager* GetInstance(char* path = nullptr);
 
     /**
     * @brief   クラスのインスタンス（シングルトン）を解放する。
@@ -78,11 +80,32 @@ public:
      */
     void SetGravitationalAccelerationX(float gravity);
 
+    void SetGravitationalAcceleration(float x, float y);
+
+    void init();
+
+    void SetParams(bool loop_idle, bool bg, bool custom_bg, bool touch_interact, bool no_reset, float scale, float x_offset, float y_offset);
+
+    bool isReady() { return ready; }
+
+    Csm::csmChar* _modelDirectoryName = new Csm::csmChar[128];
+    bool paramsSet = false;
+    bool loopIdle = false;
+//    bool useBg = false;
+    bool useBg = true;
+    bool customBg = false;
+    bool externalModel = false;
+    bool defTouchInteract = true;
+    bool noReset = false;
+    float scale = 1.0f;
+    float gravity = 0.0f;
+    float xOffset = 0.0f;
+    float yOffset = 0.5f;
 private:
     /**
     * @brief  コンストラクタ
     */
-    LWallpaperLive2DManager();
+    LWallpaperLive2DManager(char* path = nullptr);
 
     /**
     * @brief  デストラクタ
@@ -103,7 +126,7 @@ private:
     *
     * @param[in] modelDirectory モデルのディレクトリ名
     */
-    void LoadModel(const std::string modelDirectoryName);
+    void LoadModel(std::string modelDirectoryName);
 
     Csm::CubismMatrix44*        _viewMatrix; ///< モデル描画に用いるView行列
     LWallpaperModel*  _model; ///< モデルインスタンス
@@ -112,6 +135,7 @@ private:
     *@brief モデルデータのディレクトリ名
     * このディレクトリ名と同名の.model3.jsonを読み込む
     */
-    const Csm::csmChar* _modelDirectoryName = "Hiyori";
     std::string _currentModelDirectory; ///< 現在のモデルのディレクトリ
+
+    bool ready;
 };

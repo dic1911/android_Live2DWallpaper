@@ -1,0 +1,30 @@
+<resources>
+    <!-- Model Preference -->
+    <string-array name="model_entries">
+        <item>Grace (V6)</item>
+        <item>Grace (Mixxon)</item>
+        <item>Grace (SuddeИDeath)</item>
+        <item>Rasis (V6)</item>
+        <item>Rasis (Redbull)</item>
+        <item>Kanade</item>
+        <item>Emilia (Re:Zero)</item>
+        <item>Rem    (Re:Zero)</item>
+        <item>Aqua (Konosuba)</item>
+        <item>Shirakami Fubuki (Hololive)</item>
+        <item>Hiyori</item>
+    </string-array>
+
+    <string-array name="model_values">
+        <item>grace_ver6_0101</item>
+        <item>grace_mixxion_0101</item>
+        <item>grace_suddendeath_0101</item>
+        <item>rasis_ver6_0101</item>
+        <item>rasis_redbull5g</item>
+        <item>kanade_normal_0101</item>
+        <item>rezero_emilia</item>
+        <item>rezero_rem</item>
+        <item>konosuba_aqua_01</item>
+        <item>Fubuki</item>
+        <item>Hiyori</item>
+    </string-array>
+</resources>

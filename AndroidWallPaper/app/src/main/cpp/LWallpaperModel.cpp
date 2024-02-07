@@ -19,6 +19,7 @@
 #include <Motion/CubismMotionQueueEntry.hpp>
 #include <Math/CubismMath.hpp>
 #include "LWallpaperDefine.hpp"
+#include "LWallpaperLive2DManager.hpp"
 #include "LWallpaperPal.hpp"
 #include "LWallpaperTextureManager.hpp"
 #include "LWallpaperDelegate.hpp"
@@ -39,6 +40,7 @@ namespace {
         {
             LWallpaperPal::PrintLog("[APP]create buffer: %s ", path);
         }
+//        return LWallpaperPal::LoadFileAsBytes(path, size, true);
         return LWallpaperPal::LoadFileAsBytes(path, size);
     }
 
@@ -72,8 +74,8 @@ LWallpaperModel::LWallpaperModel()
     _idParamEyeBallY = CubismFramework::GetIdManager()->GetId(ParamEyeBallY);
 }
 
-LWallpaperModel::LWallpaperModel(const std::string modelDirectoryName, const std::string currentModelDirectory)
-        : CubismUserModel(),_modelDirName(modelDirectoryName), _currentModelDirectory(currentModelDirectory), _modelJson(nullptr), _userTimeSeconds(0.0f)
+LWallpaperModel::LWallpaperModel(const std::string modelDirectoryName, const std::string currentModelDirectory, const bool customModel)
+        : CubismUserModel(),_modelDirName(modelDirectoryName), _currentModelDirectory(currentModelDirectory), _modelJson(nullptr), _userTimeSeconds(0.0f), _customModel(customModel)
 {
     if (DebugLogEnable)
     {
@@ -105,21 +107,23 @@ LWallpaperModel::~LWallpaperModel()
 
 std::string LWallpaperModel::MakeAssetPath(const std::string &assetFileName)
 {
-    return _currentModelDirectory + assetFileName;
+    std::string ret = _currentModelDirectory + assetFileName;
+//    CubismLogDebug("030 asset path - %s | %s | %s", ret.c_str(), _currentModelDirectory.c_str(), assetFileName.c_str());
+    return ret;
 }
 
-void LWallpaperModel::LoadAssets(const std::string & fiileName, const std::function<void(Csm::csmByte*, Csm::csmSizeInt)>& afterLoadCallback)
+void LWallpaperModel::LoadAssets(const std::string & fileName, const std::function<void(Csm::csmByte *, Csm::csmSizeInt)>& afterLoadCallback)
 {
     Csm::csmSizeInt bufferSize = 0;
     Csm::csmByte* buffer = nullptr;
 
-    if (fiileName.empty())
+    if (fileName.empty())
     {
         return;
     }
 
     // バッファの設定
-    buffer = LWallpaperPal::LoadFileAsBytes(MakeAssetPath(fiileName).c_str(), &bufferSize);
+    buffer = LWallpaperPal::LoadFileAsBytes(MakeAssetPath(fileName), &bufferSize, _customModel || (_currentModelDirectory.find("custom_model") == 0));
 
     // コールバック関数の呼び出し
     afterLoadCallback(buffer, bufferSize);
@@ -135,7 +139,8 @@ void LWallpaperModel::SetupModel()
     _initialized = false;
 
     // モデルの設定データをJsonファイルから読み込み
-    LoadAssets(_modelDirName + ".model3.json", [=](Csm::csmByte* buffer, Csm::csmSizeInt bufferSize) { _modelJson = new Csm::CubismModelSettingJson(buffer, bufferSize); });
+    std::string name = _modelDirName.substr(_modelDirName.find("/") + 1);
+    LoadAssets(name + ".model3.json", [=](Csm::csmByte* buffer, Csm::csmSizeInt bufferSize) { _modelJson = new Csm::CubismModelSettingJson(buffer, bufferSize); });
     // モデルの設定データからモデルデータを読み込み
     LoadAssets(_modelJson->GetModelFileName(), [=](Csm::csmByte* buffer, Csm::csmSizeInt bufferSize) { LoadModel(buffer, bufferSize); });
 
@@ -306,6 +311,45 @@ void LWallpaperModel::ReleaseExpressions()
     _expressions.Clear();
 }
 
+void LWallpaperModel::Reset(bool force)
+{
+    const csmFloat32 deltaTimeSeconds = LWallpaperPal::GetDeltaTime();
+    LWallpaperDelegate* delegateInstance = LWallpaperDelegate::GetInstance();
+    LWallpaperLive2DManager* manager = LWallpaperLive2DManager::GetInstance();
+    bool loopIdle = manager->loopIdle;
+    bool noReset = manager->noReset;
+    bool canResetParameter = force || (!loopIdle && !noReset && !delegateInstance->GetIsTapped() && !delegateInstance->GetIsSecondCount());
+    if (!canResetParameter) return;
+
+    if ((CubismMath::AbsF(_gravitationalAccelerationX) < conditionStandardValue))
+    {
+        // モデル読み込み時のパラメータとの差分を出し、元に戻す
+        for (csmInt32 i = 0; i < _model->GetParameterCount(); ++i)
+        {
+            csmFloat32 diff = _initParameterValues[i] - _model->GetParameterValue(i);
+            if (CubismMath::AbsF(diff) > conditionStandardValue)
+            {
+                _model->AddParameterValue(i,diff * deltaTimeSeconds * calculationReferenceNumber);
+            } else{
+                _model->SetParameterValue(i,_initParameterValues[i]);
+            }
+        }
+    }
+
+    //ドラッグによる変化
+    //ドラッグによる顔の向きの調整
+    _model->AddParameterValue(_idParamAngleX, _dragX * 30); // -30から30の値を加える
+    _model->AddParameterValue(_idParamAngleY, _dragY * 30);
+    _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
+
+    //ドラッグによる体の向きの調整
+    _model->AddParameterValue(_idParamBodyAngleX, _dragX * calculationReferenceNumber); // -10から10の値を加える
+
+    //ドラッグによる目の向きの調整
+    _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
+    _model->AddParameterValue(_idParamEyeBallY, _dragY);
+}
+
 void LWallpaperModel::Update()
 {
     const csmFloat32 deltaTimeSeconds = LWallpaperPal::GetDeltaTime();
@@ -326,15 +370,26 @@ void LWallpaperModel::Update()
     csmBool motionUpdated = false;
 
     //-----------------------------------------------------------------
-    _model->LoadParameters(); // 前回セーブされた状態をロード
+    LWallpaperLive2DManager* manager = LWallpaperLive2DManager::GetInstance();
+    bool loopIdle = manager->loopIdle;
+    if (!loopIdle)
+        _model->LoadParameters(); // 前回セーブされた状態をロード
+
+    SetGravitationalAcceleration((manager->xOffset + manager->gravity), manager->yOffset);
     if (!_motionManager->IsFinished())
     {
+        _model->LoadParameters(); // 前回セーブされた状態をロード
         motionUpdated = _motionManager->UpdateMotion(_model, deltaTimeSeconds); // モーションを更新
+    } else if (loopIdle) {
+        LWallpaperLive2DManager::GetInstance()->GetModel()->StartRandomMotionWithOption(LWallpaperDefine::MotionGroupIdle, LWallpaperDefine::PriorityIdle);
     }
     _model->SaveParameters(); // 状態を保存
     //-----------------------------------------------------------------
 
-    bool canResetParameter = (!delegateInstance->GetIsTapped() && !delegateInstance->GetIsSecondCount());
+    bool noReset = manager->noReset;
+
+    // Note. `canResetParameter` causes idle motion loop being jumpy, but forcing it to false results in weird look when interacted
+    bool canResetParameter = (!loopIdle && !noReset && !delegateInstance->GetIsTapped() && !delegateInstance->GetIsSecondCount());
 
     // メインモーションの更新がないとき
     if (!motionUpdated)
@@ -344,20 +399,7 @@ void LWallpaperModel::Update()
             _eyeBlink->UpdateParameters(_model, deltaTimeSeconds); // まばたき
         }
 
-        if (canResetParameter && (CubismMath::AbsF(_gravitationalAccelerationX) < conditionStandardValue))
-        {
-            // モデル読み込み時のパラメータとの差分を出し、元に戻す
-            for (csmInt32 i = 0; i < _model->GetParameterCount(); ++i)
-            {
-                csmFloat32 diff = _initParameterValues[i] - _model->GetParameterValue(i);
-                if (CubismMath::AbsF(diff) > conditionStandardValue)
-                {
-                    _model->AddParameterValue(i,diff * deltaTimeSeconds * calculationReferenceNumber);
-                } else{
-                    _model->SetParameterValue(i,_initParameterValues[i]);
-                }
-            }
-        }
+        Reset(false);
     }
 
     if (_expressionManager)
@@ -366,22 +408,7 @@ void LWallpaperModel::Update()
     }
 
 
-    if (canResetParameter)
-    {
-        //ドラッグによる変化
-        //ドラッグによる顔の向きの調整
-        _model->AddParameterValue(_idParamAngleX, _dragX * 30); // -30から30の値を加える
-        _model->AddParameterValue(_idParamAngleY, _dragY * 30);
-        _model->AddParameterValue(_idParamAngleZ, _dragX * _dragY * -30);
-
-        //ドラッグによる体の向きの調整
-        _model->AddParameterValue(_idParamBodyAngleX, _dragX * calculationReferenceNumber); // -10から10の値を加える
-
-        //ドラッグによる目の向きの調整
-        _model->AddParameterValue(_idParamEyeBallX, _dragX); // -1から1の値を加える
-        _model->AddParameterValue(_idParamEyeBallY, _dragY);
-    }
-    else
+    if (!canResetParameter)
     {
         Csm::CubismVector2 vec = delegateInstance->GetViewPoint();
 
@@ -416,8 +443,10 @@ void LWallpaperModel::Update()
 
         // 範囲を超えないように設定
         _gravitationalAccelerationX = CubismMath::RangeF(_gravitationalAccelerationX,-gravitationalAccelerationRange,gravitationalAccelerationRange);
+        _gravitationalAccelerationY = CubismMath::RangeF(_gravitationalAccelerationY,-gravitationalAccelerationRange,gravitationalAccelerationRange);
         //モデルの位置を設定
         _modelMatrix->SetX(-_gravitationalAccelerationX / 2.0f);
+        _modelMatrix->SetY(-_gravitationalAccelerationY / 2.0f);
     }
 
     _model->SaveParameters(); // 状態を保存
@@ -676,4 +705,10 @@ void LWallpaperModel::SetGravitationalAccelerationX(Csm::csmFloat32 gravity)
 {
     // 第五問 1.3
     _gravitationalAccelerationX = gravity;
+}
+
+void LWallpaperModel::SetGravitationalAcceleration(Csm::csmFloat32 x, Csm::csmFloat32 y)
+{
+    _gravitationalAccelerationX = x;
+    _gravitationalAccelerationY = y;
 }

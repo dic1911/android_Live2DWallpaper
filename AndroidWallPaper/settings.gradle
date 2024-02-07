@@ -1,2 +1,2 @@
-include ':Demo'
-project(':Demo').projectDir = new File(settingsDir, 'app')
+include ':Live2DWallpaper'
+project(':Live2DWallpaper').projectDir = new File(settingsDir, 'app')

@@ -28,13 +28,17 @@ double LWallpaperPal::s_currentFrame = 0.0;
 double LWallpaperPal::s_lastFrame = 0.0;
 double LWallpaperPal::s_deltaTime = 0.0;
 
-csmByte* LWallpaperPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize)
+csmByte* LWallpaperPal::LoadFileAsBytes(const string filePath, csmSizeInt* outSize, bool fromFiles)
 {
-    //filePath;//
     const char* path = filePath.c_str();
 
     // file buffer
-    char* buf = JniBridgeC::LoadFileAsBytesFromJava(path, outSize);
+    char* buf;
+    if (fromFiles) {
+        buf = JniBridgeC::LoadFileFromFilesAsBytesFromJava(path, outSize);
+    } else {
+        buf = JniBridgeC::LoadFileAsBytesFromJava(path, outSize);
+    }
 
     return reinterpret_cast<csmByte*>(buf);
 }

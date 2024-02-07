@@ -1,0 +1,96 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory app:title="@string/general_header">
+
+        <SwitchPreferenceCompat
+            app:key="sensor"
+            app:summary="@string/use_sensor_summary"
+            app:title="@string/use_sensor_title" />
+
+        <SwitchPreferenceCompat
+            app:key="loop_idle_motion"
+            android:disableDependentsState="true"
+            app:summary="@string/loop_idle_motion_summary"
+            app:title="@string/loop_idle_motion_title" />
+
+        <SwitchPreferenceCompat
+            app:key="default_touch_interaction"
+            app:dependency="loop_idle_motion"
+            app:defaultValue="true"
+            app:summary="@string/def_touch_interaction_summary"
+            app:title="@string/def_touch_interaction_title" />
+
+        <SwitchPreferenceCompat
+            app:key="no_reset"
+            app:defaultValue="false"
+            app:summary="@string/no_reset_summary"
+            app:title="@string/no_reset_title" />
+
+        <Preference
+            app:title="@string/restart_title"
+            app:key="restart" />
+
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/display_header">
+
+        <ListPreference
+                    app:defaultValue="kanade_normal_0101"
+                    app:entries="@array/model_entries"
+                    app:entryValues="@array/model_values"
+                    app:key="model"
+                    app:title="@string/model_title"
+                    app:useSimpleSummaryProvider="true" />
+
+        <Preference
+            app:title="@string/external_model_title"
+            app:summary="@string/external_model_summary"
+            app:key="external_model" />
+<!--        <SwitchPreferenceCompat-->
+<!--            app:title="@string/external_model_title"-->
+<!--            app:summary="@string/external_model_summary"-->
+<!--            app:key="external_model"-->
+<!--            app:defaultValue="false"-->
+<!--        />-->
+
+        <EditTextPreference
+            app:title="@string/model_scale_title"
+            app:summary="@string/model_scale_summary"
+            app:defaultValue="100"
+            app:key="model_scale"
+        />
+
+        <EditTextPreference
+            app:title="@string/x_offset_title"
+            app:summary="@string/coords_offset_summary"
+            app:defaultValue="0"
+            app:key="x_offset"
+        />
+
+        <EditTextPreference
+            app:title="@string/y_offset_title"
+            app:summary="@string/coords_offset_summary"
+            app:defaultValue="0"
+            app:key="y_offset"
+        />
+
+        <SwitchPreferenceCompat
+            app:key="use_background"
+            app:summary="@string/bg_img_summary"
+            app:title="@string/bg_img_title" />
+
+        <SwitchPreferenceCompat
+            app:title="@string/bg_select_title"
+            app:key="custom_background"
+            app:dependency="use_background"
+        />
+
+        <Preference
+            app:summary="@string/restart_to_apply"
+        />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

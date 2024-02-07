@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Set app name.
-set(APP_NAME Demo)
+set(APP_NAME Live2DWallpaper)
 # Set directory paths.
 set(SDK_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 set(CORE_PATH ${SDK_ROOT_PATH}/Core)
@@ -13,6 +13,9 @@ set(STB_PATH ${THIRD_PARTY_PATH}/stb)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O -g")
 
 # Add Cubism Core.
 # Import as static library.

@@ -33,12 +33,6 @@ namespace LWallpaperDefine {
 
     extern const csmChar* ResourcesPath;            ///< 素材パス
     extern const csmChar* BackImageName;         ///< 背景画像ファイル
-    extern const csmChar* GearImageName;         ///< 歯車画像ファイル
-    extern const csmChar* PowerImageName;        ///< 終了ボタン画像ファイル
-
-    // モデル定義--------------------------------------------
-    extern const csmChar* ModelDir[];               ///< モデルを配置したディレクトリ名の配列. ディレクトリ名とmodel3.jsonの名前を一致させておく.
-    extern const csmInt32 ModelDirSize;             ///< モデルディレクトリ配列のサイズ
 
                                                     // 外部定義ファイル(json)と合わせる
     extern const csmChar* MotionGroupIdle;          ///< アイドリング時に再生するモーションのリスト

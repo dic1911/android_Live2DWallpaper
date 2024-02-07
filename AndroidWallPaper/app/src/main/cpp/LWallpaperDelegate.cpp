@@ -7,6 +7,7 @@
 
 #include "LWallpaperDelegate.hpp"
 #include <iostream>
+#include <unistd.h>
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #include "LWallpaperView.hpp"
@@ -24,27 +25,29 @@ using namespace std;
 using namespace LWallpaperDefine;
 
 namespace {
-    LWallpaperDelegate* s_instance = nullptr;
+    LWallpaperDelegate* wd_instance = nullptr;
 }
 
 LWallpaperDelegate* LWallpaperDelegate::GetInstance()
 {
-    if (!s_instance)
+    std::lock_guard<std::mutex> guard(init_mutex);
+    if (!wd_instance)
     {
-        s_instance = new LWallpaperDelegate();
+        wd_instance = new LWallpaperDelegate();
     }
 
-    return s_instance;
+    delegate_ready = true;
+    return wd_instance;
 }
 
 void LWallpaperDelegate::ReleaseInstance()
 {
-    if (s_instance)
+    if (wd_instance)
     {
-        delete s_instance;
+        delete wd_instance;
     }
 
-    s_instance = nullptr;
+    wd_instance = nullptr;
 }
 
 
@@ -132,6 +135,13 @@ void LWallpaperDelegate::OnSurfaceChanged(float width, float height)
     _width = width;
     _height = height;
 
+    // wait for up to 10 sec if not ready
+    int c = 0;
+    while (!LWallpaperLive2DManager::GetInstance() && ++c < 101) {
+        CubismLogDebug("030...waiting...");
+        usleep(100);
+    }
+
     //AppViewの初期化
     _view->Initialize();
     _view->InitializeSprite();
@@ -170,8 +180,9 @@ void LWallpaperDelegate::OnTouchBegan(double x, double y)
 {
     _mouseX = static_cast<float>(x);
     _mouseY = static_cast<float>(y);
+    LWallpaperLive2DManager* manager = LWallpaperLive2DManager::GetInstance();
 
-    if (_view)
+    if (_view && manager && manager->defTouchInteract)
     {
         _isTapped = true;
         _isSecondCount = false;
@@ -184,14 +195,20 @@ void LWallpaperDelegate::OnTouchEnded(double x, double y)
 {
     _mouseX = static_cast<float>(x);
     _mouseY = static_cast<float>(y);
+    LWallpaperLive2DManager* manager = LWallpaperLive2DManager::GetInstance();
 
     if (_view)
     {
-        _isTapped = false;
-        _isSecondCount = true;
-        _deltaTimeCount = 0.0f;
-        _isCaptured = false;
-        _viewPoint = _view->OnTouchesEnded(_mouseX, _mouseY);
+        if (!manager || manager->defTouchInteract) {
+            _isTapped = false;
+            _isSecondCount = true;
+            _deltaTimeCount = 0.0f;
+            _isCaptured = false;
+            _viewPoint = _view->OnTouchesEnded(_mouseX, _mouseY);
+        } else {
+            manager->GetModel()->Reset(true);
+            manager->GetModel()->StartRandomMotionWithOption(LWallpaperDefine::MotionGroupTapBody, LWallpaperDefine::PriorityForce);
+        }
     }
 }
 
@@ -199,8 +216,9 @@ void LWallpaperDelegate::OnTouchMoved(double x, double y)
 {
     _mouseX = static_cast<float>(x);
     _mouseY = static_cast<float>(y);
+    LWallpaperLive2DManager* manager = LWallpaperLive2DManager::GetInstance();
 
-    if (_isCaptured && _view)
+    if (_isCaptured && _view && manager && manager->defTouchInteract)
     {
         _isTapped = false;
         _isSecondCount = false;
@@ -300,4 +318,14 @@ void LWallpaperDelegate::SetGravitationalAccelerationX(float gravity)
         return;
     }
     LWallpaperLive2DManager::GetInstance()->SetGravitationalAccelerationX(gravity);
+}
+
+void LWallpaperDelegate::SetGravitationalAcceleration(float x, float y)
+{
+    // 第四問 1.2
+    if (CubismMath::AbsF(x) < 0.001f || CubismMath::AbsF(y) < 0.001f)
+    {
+        return;
+    }
+    LWallpaperLive2DManager::GetInstance()->SetGravitationalAcceleration(x, y);
 }

@@ -30,7 +30,7 @@ public:
     /**
     * @brief コンストラクタ
     */
-    LWallpaperModel(const std::string modelDirectoryName, const std::string currentModelDirectory);
+    LWallpaperModel(const std::string modelDirectoryName, const std::string currentModelDirectory, const bool customModel);
 
     /**
      * @brief デストラクタ
@@ -49,7 +49,7 @@ public:
      * @brief model3.jsonが置かれたディレクトリとファイルパスからモデルを生成する
      *
      */
-    void LoadAssets(const std::string & fiileName, const std::function<void(Csm::csmByte*, Csm::csmSizeInt)>& afterLoadCallback);
+    void LoadAssets(const std::string & fileName, const std::function<void(Csm::csmByte *, Csm::csmSizeInt)>& afterLoadCallback);
 
     /**
      * @brief レンダラを再構築する
@@ -127,6 +127,7 @@ public:
     * @param[in] gravity X方向の重力加速度
     */
     void SetGravitationalAccelerationX(Csm::csmFloat32 gravity);
+    void SetGravitationalAcceleration(Csm::csmFloat32 x, Csm::csmFloat32 y);
 
     /**
      * @brief    当たり判定テスト。<br>
@@ -137,6 +138,12 @@ public:
      * @param[in]   y               判定を行うY座標
      */
     virtual Csm::csmBool HitTest(const Csm::csmChar* hitAreaName, Csm::csmFloat32 x, Csm::csmFloat32 y);
+
+    void Reset(bool force);
+
+    void SetLoopIdle(bool v) {
+        loopIdleMotion = v;
+    }
 
 private:
     /**
@@ -215,6 +222,11 @@ private:
     Csm::csmFloat32* _initParameterValues;                       ///< パラメータの初期値のリスト
 
     Csm::csmFloat32 _gravitationalAccelerationX; ///< X方向にかかっている重力加速度
+    Csm::csmFloat32 _gravitationalAccelerationY; ///< Y方向にかかっている重力加速度
+    Csm::csmFloat32 _gravitationalAccelerationZ; ///< Z方向にかかっている重力加速度
+
+    bool _customModel = false;
+    bool loopIdleMotion = false;
 };
 
 
