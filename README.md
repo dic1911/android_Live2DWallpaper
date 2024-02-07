@@ -1,4 +1,11 @@
-# Cubism Android Wallpaper Sample
+# Live2D Android Wallpaper
+
+A heavily modded Live Wallpaper based on sample app from Cubism, supports importing custom Live2D models and basic customizations such as positioning, scaling and interactions.
+
+---
+## Original README below
+---
+
 
 Live2D Cubism 4 Editor で出力したモデルを表示する LiveWallpaper アプリケーションのサンプルです。
 
